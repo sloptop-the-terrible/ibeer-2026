@@ -8,12 +8,35 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 body{
-  background:radial-gradient(ellipse at 50% 80%,#1a0e08 0%,#0d0704 70%,#000 100%);
-  font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;
+  background:radial-gradient(ellipse at 50% 30%,#2a1508 0%,#0d0704 70%,#000 100%);
+  font-family:'Helvetica Neue',Arial,sans-serif;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100dvh;padding:10px;
+  min-height:100dvh;padding:0;position:relative;
 }
-.container{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:360px;perspective:800px}
+/* Bar background overlay - wood, neon, brick */
+.bar-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(139,69,19,0.12) 0%,transparent 30%,rgba(139,69,19,0.08) 100%),
+    radial-gradient(ellipse at 20% 40%,rgba(255,200,50,0.03),transparent 50%),
+    radial-gradient(ellipse at 80% 40%,rgba(255,100,50,0.03),transparent 50%),
+    repeating-linear-gradient(90deg,rgba(40,20,10,0.3) 0px,rgba(40,20,10,0.1) 2px,rgba(40,20,10,0.3) 4px);
+}
+/* Neon sign glow */
+.neon-glow{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:0;pointer-events:none;font-size:36px;color:#ff69b4;text-shadow:0 0 20px #ff69b4,0 0 40px #ff69b4,0 0 80px #ff1493;opacity:.6;letter-spacing:10px;white-space:nowrap}
+/* Brick pattern overlay */
+.bar-bg::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:25%;
+  background:repeating-linear-gradient(0deg,transparent 0px,transparent 28px,rgba(80,30,10,0.08) 28px,rgba(80,30,10,0.08) 30px),
+  repeating-linear-gradient(90deg,transparent 0px,transparent 58px,rgba(80,30,10,0.05) 58px,rgba(80,30,10,0.05) 60px);
+}
+/* Bar shelf line */
+.shelf-line{position:fixed;bottom:80px;left:0;right:0;height:4px;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(139,69,19,0.2) 10%,rgba(139,69,19,0.3) 50%,rgba(139,69,19,0.2) 90%,transparent);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+.container{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:360px;perspective:800px}
 
 .phone{
   width:100%;max-width:320px;aspect-ratio:9/16;
@@ -24,7 +47,7 @@ body{
   transform-style:preserve-3d;transition:transform .06s cubic-bezier(.05,.7,.3,1);
   transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg);
 }
-.phone.tilt-fast{transition:transform .02s linear}
+.phone.fast{transition:transform .015s linear}
 
 .notch{
   position:absolute;top:10px;left:50%;transform:translateX(-50%) translateZ(2px);
@@ -39,13 +62,21 @@ body{
   transform:translateZ(1px);
 }
 
-.title-bar{width:100%;padding:32px 12px 4px;text-align:center;flex-shrink:0}
-.title-bar h1{font-size:24px;color:#ffd700;text-shadow:0 2px 6px rgba(0,0,0,.5);letter-spacing:1px;margin:0}
-.title-bar .sub{font-size:10px;color:rgba(255,215,0,.25);margin-top:1px}
+/* Drink selector */
+.drink-selector{width:100%;padding:28px 10px 2px;display:flex;gap:4px;justify-content:center;flex-shrink:0;flex-wrap:wrap}
+.drink-btn{
+  padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600;cursor:pointer;
+  border:1px solid rgba(255,215,0,.2);background:rgba(0,0,0,.3);color:rgba(255,255,200,.4);
+  transition:all .15s;touch-action:manipulation;white-space:nowrap
+}
+.drink-btn.active{border-color:#ffd700;background:rgba(255,215,0,.15);color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,.1)}
+.drink-btn:active{transform:scale(.92)}
 
-.glass-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;perspective:600px;transform:translateZ(3px)}
+.glass-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;perspective:600px;position:relative}
 
-.glasses-wrap{position:relative;width:150px;height:190px;margin:4px auto;transform-style:preserve-3d}
+#iceCanvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:150px;height:190px;z-index:6;pointer-events:none}
+
+.glasses-wrap{position:relative;width:150px;height:190px;margin:0 auto;transform-style:preserve-3d}
 
 .glass{
   position:absolute;bottom:0;left:50%;transform:translateX(-50%);
@@ -61,19 +92,14 @@ body{
 .handle{position:absolute;right:-17px;top:32px;width:18px;height:40px;border:2px solid rgba(200,160,120,.15);border-radius:0 8px 8px 0;border-left:none}
 
 .liquid-wrap{position:absolute;bottom:0;left:0;width:100%;height:100%;overflow:hidden;border-radius:0 0 8px 8px}
-.liquid{
-  position:absolute;bottom:0;left:0;width:100%;height:100%;
-  background:linear-gradient(180deg,#f5d742 0%,#d4a017 10%,#c8960e 25%,#b8860b 45%,#8B6914 65%,#6B4E0A 80%,#4a3508 100%);
-  transition:height .15s cubic-bezier(.4,0,.2,1);border-radius:0 0 8px 8px;z-index:2
-}
+.liquid{position:absolute;bottom:0;left:0;width:100%;height:100%;transition:height .15s cubic-bezier(.4,0,.2,1);border-radius:0 0 8px 8px;z-index:2}
 .liquid::after{content:'';position:absolute;top:-3px;left:0;right:0;height:10px;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,200,.2),transparent);border-radius:50%}
 .liquid-shine{position:absolute;top:2px;left:5%;width:90%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,220,.3),transparent);border-radius:50%;z-index:3;pointer-events:none}
 
-.foam{
-  position:absolute;bottom:0;left:0;width:100%;height:100%;
-  background:linear-gradient(180deg,rgba(255,255,255,.95) 0%,rgba(255,255,240,.88) 6%,rgba(255,230,200,.5) 12%,transparent 18%);
-  z-index:3;transition:height .15s cubic-bezier(.4,0,.2,1);border-radius:0 0 8px 8px;pointer-events:none
-}
+.foam{position:absolute;bottom:0;left:0;width:100%;height:100%;z-index:3;transition:height .15s cubic-bezier(.4,0,.2,1);border-radius:0 0 8px 8px;pointer-events:none}
+.foam.beer{background:linear-gradient(180deg,rgba(255,255,255,.95) 0%,rgba(255,255,240,.88) 6%,rgba(255,230,200,.5) 12%,transparent 18%)}
+.foam.whiskey{background:linear-gradient(180deg,rgba(200,150,100,.3) 0%,rgba(200,150,100,.15) 8%,transparent 18%)}
+.foam.none{background:transparent}
 
 .bubble-container{position:absolute;bottom:0;left:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:hidden}
 .bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.6),rgba(255,255,255,.2));animation:rise linear infinite}
@@ -84,35 +110,59 @@ body{
 .glug-wave.go{height:30%;animation:glug 1s ease-out forwards}
 @keyframes glug{0%{height:0%;opacity:1}50%{height:35%;opacity:.5;border-radius:30%}100%{height:0%;opacity:0;border-radius:50%}}
 
-.status{font-size:13px;font-weight:600;color:rgba(255,255,200,.65);text-shadow:0 1px 3px rgba(0,0,0,.5);text-align:center;min-height:20px;margin-top:4px;transition:opacity .3s}
+.status{font-size:13px;font-weight:600;color:rgba(255,255,200,.65);text-shadow:0 1px 3px rgba(0,0,0,.5);text-align:center;min-height:20px;margin-top:2px;transition:opacity .3s}
 
-.bottoms{flex-shrink:0;width:100%;padding:8px 12px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bottoms{flex-shrink:0;width:100%;padding:4px 12px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
 
-.inst{font-size:11px;color:rgba(255,255,200,.3);display:flex;align-items:center;gap:4px;justify-content:center;min-height:18px}
-.inst .pulse{font-size:13px;animation:blink 2s infinite}
+.inst{font-size:10px;color:rgba(255,255,200,.3);display:flex;align-items:center;gap:4px;justify-content:center;min-height:16px}
+.inst .pulse{font-size:12px;animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:.4}50%{opacity:1}}
 
-.counter{font-size:11px;color:rgba(255,255,200,.2);margin-top:1px}
+.counter{font-size:10px;color:rgba(255,255,200,.2)}
 
-.btn-wrap{display:flex;gap:10px;margin-top:4px}
+.btn-wrap{display:flex;gap:8px;margin-top:2px}
 .btn{
-  padding:7px 18px;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+  padding:5px 16px;border:none;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;
   background:linear-gradient(135deg,#d4a017,#b8860b);color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.3);transition:all .15s;touch-action:manipulation
 }
-.btn:active{transform:scale(.95)}
+.btn:active{transform:scale(.93)}
 .btn.gyro{background:linear-gradient(135deg,#4a90d9,#357abd);display:none}
 
-.sip-indicator{font-size:18px;color:rgba(255,215,0,.1);margin-top:2px;min-height:22px;letter-spacing:2px}
+.sip-indicator{font-size:14px;color:rgba(255,215,0,.1);margin-top:1px;min-height:18px;letter-spacing:1px}
+
+/* Samsung bar ad (bottom of app) */
+.samsung-ad{
+  position:absolute;bottom:0;left:0;right:0;
+  height:24px;z-index:15;
+  background:linear-gradient(90deg,rgba(20,30,80,0.9),rgba(30,50,120,0.85),rgba(20,30,80,0.9));
+  border-top:1px solid rgba(100,150,255,.15);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:8px;color:rgba(200,220,255,.5);letter-spacing:.5px;
+  backdrop-filter:blur(2px);
+  overflow:hidden;
+}
+.samsung-ad .logo{font-size:10px;font-weight:800;color:rgba(200,220,255,.7);letter-spacing:1px}
+.samsung-ad .text{color:rgba(200,220,255,.4)}
+.samsung-ad .btn-ad{
+  padding:1px 8px;border-radius:8px;background:rgba(255,255,255,.1);color:rgba(200,220,255,.6);font-size:7px;font-weight:600;
+}
 </style>
 </head>
 <body>
+<div class="bar-bg"></div>
+<div class="neon-glow">OPEN</div>
+<div class="shelf-line"></div>
+
 <div class="container">
   <div class="phone" id="phone">
     <div class="notch"><div class="notch-dot"></div></div>
     <div class="screen">
-      <div class="title-bar">
-        <h1>🍺 iBeer</h1>
-        <div class="sub">tilt & drink</div>
+      <div class="drink-selector" id="drinkSelector">
+        <button class="drink-btn active" data-drink="beer">🍺 Beer</button>
+        <button class="drink-btn" data-drink="whiskey">🥃 Whiskey</button>
+        <button class="drink-btn" data-drink="wine">🍷 Wine</button>
+        <button class="drink-btn" data-drink="cocktail">🍹 Cocktail</button>
+        <button class="drink-btn" data-drink="water">💧 Water</button>
       </div>
       <div class="glass-area">
         <div class="glasses-wrap">
@@ -123,23 +173,34 @@ body{
                 <div class="liquid" id="liquid" style="height:100%">
                   <div class="liquid-shine"></div>
                 </div>
-                <div class="foam" id="foam" style="height:100%"></div>
+                <div class="foam" id="foam"></div>
                 <div class="bubble-container" id="bubbleCon"></div>
               </div>
             </div>
           </div>
+          <canvas id="iceCanvas"></canvas>
           <div class="glug-overlay"><div class="glug-wave" id="glugWave"></div></div>
         </div>
         <div class="status" id="status">🍻 Cheers!</div>
       </div>
       <div class="bottoms">
-        <div class="inst"><span class="pulse" id="instIcon">📱</span><span id="instText">Tap to enable</span></div>
-        <div class="counter" id="counter">0 beers</div>
+        <div class="inst">
+          <span class="pulse" id="instIcon">📱</span>
+          <span id="instText">Tap to enable</span>
+        </div>
+        <div class="counter" id="counter">0 drinks</div>
         <div class="btn-wrap">
           <button class="btn gyro" id="gyroBtn">Enable Gyroscope</button>
           <button class="btn" id="resetBtn">🔄 Refill</button>
+          <button class="btn" id="iceBtn">🧊 +Ice</button>
         </div>
         <div class="sip-indicator" id="sipDots">··········</div>
+      </div>
+      <!-- Samsung ad -->
+      <div class="samsung-ad">
+        <span class="logo">SΛMSUNG</span>
+        <span class="text">Galaxy S26 Ultra — 200MP AI Camera</span>
+        <span class="btn-ad">Learn More</span>
       </div>
     </div>
   </div>
@@ -149,6 +210,7 @@ body{
 (function(){
   'use strict';
 
+  // === DOM ===
   const L=document.getElementById('liquid');
   const F=document.getElementById('foam');
   const S=document.getElementById('status');
@@ -162,15 +224,39 @@ body{
   const BC=document.getElementById('bubbleCon');
   const SD=document.getElementById('sipDots');
   const GW=document.getElementById('glugWave');
+  const iceBtn=document.getElementById('iceBtn');
+  const iceCanvas=document.getElementById('iceCanvas');
+  const ctx=iceCanvas.getContext('2d');
+  const drinkBtns=document.querySelectorAll('.drink-btn');
 
+  // === Drink config ===
+  const DRINKS={
+    beer:{color:'linear-gradient(180deg,#f5d742 0%,#d4a017 10%,#c8960e 25%,#b8860b 45%,#8B6914 65%,#6B4E0A 80%,#4a3508 100%)',foam:'beer',name:'Beer',msg:'🍻 Cheers!'},
+    whiskey:{color:'linear-gradient(180deg,#c8953c 0%,#a07628 15%,#8B5E14 40%,#6B4510 65%,#4a3008 100%)',foam:'whiskey',name:'Whiskey',msg:'🥃 Sláinte!'},
+    wine:{color:'linear-gradient(180deg,#8B2252 0%,#7B1842 15%,#6B1038 40%,#5A082E 65%,#400020 100%)',foam:'none',name:'Wine',msg:'🍷 Salud!'},
+    cocktail:{color:'linear-gradient(180deg,#ff6b8a 0%,#e84a6a 15%,#d4385a 40%,#b82848 65%,#901838 100%)',foam:'none',name:'Cocktail',msg:'🍹 Cheers!'},
+    water:{color:'linear-gradient(180deg,rgba(100,180,255,.6) 0%,rgba(60,140,220,.4) 15%,rgba(40,120,200,.3) 40%,rgba(20,100,180,.2) 65%,rgba(10,80,160,.15) 100%)',foam:'none',name:'Water',msg:'💧 Hydrate!'}
+  };
+
+  let currentDrink='beer';
   let level=100, drunk=0;
   let gyro=false, listened=false;
   let cal=null, accum=0, drinking=false;
+  let iceCubes=[];
 
-  // Bubbles
+  // === Canvas resize ===
+  function resizeCanvas(){
+    const wrap=document.querySelector('.glasses-wrap');
+    const r=wrap.getBoundingClientRect();
+    iceCanvas.width=150;
+    iceCanvas.height=190;
+  }
+  resizeCanvas();
+
+  // === Bubbles ===
   (function(){
     BC.innerHTML='';
-    for(let i=0;i<18;i++){
+    for(let i=0;i<14;i++){
       const b=document.createElement('div');
       b.className='bubble';
       const s=2+Math.random()*4;
@@ -179,23 +265,192 @@ body{
     }
   })();
 
-  function set(l){
+  // === Set drink ===
+  function setDrink(drink){
+    currentDrink=drink;
+    const d=DRINKS[drink];
+    L.style.background=d.color;
+    F.className='foam '+d.foam;
+    drinkBtns.forEach(b=>{
+      b.classList.toggle('active',b.dataset.drink===drink);
+    });
+    if(level>0){
+      if(drink==='beer')S.textContent='🍻 Fresh pint!';
+      else S.textContent=d.msg;
+    }
+  }
+
+  // Drink buttons
+  drinkBtns.forEach(b=>{
+    b.addEventListener('click',()=>{
+      setDrink(b.dataset.drink);
+    });
+  });
+
+  // === Ice physics ===
+  function addIce(count){
+    const glassX=iceCanvas.width/2;
+    const glassY=iceCanvas.height-10;
+    const glassW=120;
+    const glassH=150;
+    const left=(iceCanvas.width-glassW)/2;
+    const top=iceCanvas.height-10-glassH;
+
+    // Ice fill height = same as liquid
+    const iceFillHeight=glassH*(level/100);
+    const iceTop=glassY-iceFillHeight+8;
+
+    for(let i=0;i<count;i++){
+      iceCubes.push({
+        x:glassX+(Math.random()-0.5)*(glassW*0.5),
+        y:iceTop+Math.random()*(iceFillHeight*0.4),
+        vx:(Math.random()-0.5)*0.5,
+        vy:Math.random()*0.3,
+        r:5+Math.random()*3,
+        density:0.9 // floats on top
+      });
+    }
+    if(iceCubes.length>30)iceCubes=iceCubes.slice(-30);
+  }
+
+  function updateIce(beta,gamma){
+    const glassW=120;
+    const glassH=150;
+    const left=(iceCanvas.width-glassW)/2;
+    const top=iceCanvas.height-10-glassH;
+    const right=left+glassW;
+    const bottom=top+glassH;
+    const iceFillHeight=glassH*(level/100);
+    const iceTop=bottom-iceFillHeight+6;
+    const iceBottom=bottom-4;
+
+    // Physics constants
+    const tiltX=(beta||0)*0.003;
+    const tiltY=(gamma||0)*0.004;
+    const friction=0.97;
+    const bounce=0.4;
+
+    for(let i=0;i<iceCubes.length;i++){
+      const c=iceCubes[i];
+
+      // Gravity + tilt
+      c.vx+=tiltY*0.5;
+      c.vy+=tiltX*0.5;
+      // Drag
+      c.vy+=0.05; // buoyancy/gravity
+      c.vx*=friction;
+      c.vy*=friction;
+
+      // Move
+      c.x+=c.vx;
+      c.y+=c.vy;
+
+      // Keep above ice fill
+      if(c.y-c.r<iceTop){c.y=iceTop+c.r;c.vy=Math.abs(c.vy)*bounce;}
+
+      // Wall collisions
+      if(c.x-c.r<left){c.x=left+c.r;c.vx=Math.abs(c.vx)*bounce;}
+      if(c.x+c.r>right){c.x=right-c.r;c.vx=-Math.abs(c.vx)*bounce;}
+      if(c.y+c.r>iceBottom){c.y=iceBottom-c.r;c.vy=-Math.abs(c.vy)*bounce;}
+
+      // Float on surface: push cubes to top portion
+      const surfaceY=iceTop+((iceFillHeight)*0.15);
+      if(c.y>surfaceY+5&&c.vy<0.3){
+        c.vy-=0.02; // buoyancy push up
+      }
+    }
+
+    // Collision between cubes
+    for(let i=0;i<iceCubes.length;i++){
+      for(let j=i+1;j<iceCubes.length;j++){
+        const a=iceCubes[i],b=iceCubes[j];
+        const dx=b.x-a.x,dy=b.y-a.y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        const minDist=a.r+b.r;
+        if(dist<minDist&&dist>0.01){
+          const overlap=(minDist-dist)/2;
+          const nx=dx/dist,ny=dy/dist;
+          a.x-=nx*overlap; a.y-=ny*overlap;
+          b.x+=nx*overlap; b.y+=ny*overlap;
+
+          // Simple bounce exchange
+          const relVx=b.vx-a.vx,relVy=b.vy-a.vy;
+          const relDot=relVx*nx+relVy*ny;
+          if(relDot<0){
+            a.vx+=nx*relDot*0.5;
+            a.vy+=ny*relDot*0.5;
+            b.vx-=nx*relDot*0.5;
+            b.vy-=ny*relDot*0.5;
+          }
+        }
+      }
+    }
+  }
+
+  function drawIce(alpha){
+    ctx.clearRect(0,0,iceCanvas.width,iceCanvas.height);
+
+    // Draw ice shadows
+    for(const c of iceCubes){
+      ctx.beginPath();
+      ctx.arc(c.x+1,c.y+2,c.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.15)';
+      ctx.fill();
+    }
+
+    // Draw ice cubes
+    for(const c of iceCubes){
+      ctx.beginPath();
+      ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+      const grad=ctx.createRadialGradient(c.x-c.r*0.3,c.y-c.r*0.3,c.r*0.1,c.x,c.y,c.r);
+      grad.addColorStop(0,'rgba(255,255,255,0.6)');
+      grad.addColorStop(0.5,'rgba(200,220,255,0.35)');
+      grad.addColorStop(1,'rgba(150,180,220,0.15)');
+      ctx.fillStyle=grad;
+      ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.15)';
+      ctx.lineWidth=0.5;
+      ctx.stroke();
+    }
+  }
+
+  // === Main loop ===
+  let animFrame=null;
+  let lastBeta=0, lastGamma=0;
+
+  function physicsLoop(){
+    updateIce(lastBeta,lastGamma);
+    drawIce();
+    animFrame=requestAnimationFrame(physicsLoop);
+  }
+
+  function startPhysics(){if(!animFrame)physicsLoop();}
+  function stopPhysics(){if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}}
+
+  // === Set level ===
+  function set(l,drink){
     level=Math.max(0,Math.min(100,l));
     L.style.height=level+'%';
-    F.style.height=Math.min(100,level+2)+'%';
+    const d=DRINKS[currentDrink];
+    if(d.foam!=='none')F.style.height=Math.min(100,level+2)+'%';
+    else F.style.height='0%';
     const dots=Math.floor(level/10);
     SD.textContent='🍺'.repeat(dots)+(dots<10?'·'.repeat(10-dots):'');
-    if(level>=95)S.textContent='🍻 Fresh pint!';
+    if(level>=95)S.textContent=d.msg;
     else if(level>70)S.textContent='😌 Gettin there';
     else if(level>40)S.textContent='😋 Halfway!';
     else if(level>10)S.textContent='🤏 Almost gone';
     else if(level>0)S.textContent='😵 Last drops!';
-    else{S.textContent='🍺 EMPTY!';drunk++;C.textContent=drunk+(drunk===1?' beer':' beers');}
+    else{S.textContent='🍺 EMPTY!';drunk++;C.textContent=drunk+(drunk===1?' drink':' drinks');resetIce();}
+  }
+
+  function resetIce(){
+    iceCubes=[];
+    addIce(3+Math.floor(Math.random()*4));
   }
 
   function drain(amt){
     if(level<=0)return;
-    const prev=level;
     set(level-amt);
     GW.className='glug-wave go';
     setTimeout(()=>GW.className='glug-wave',800);
@@ -206,55 +461,46 @@ body{
     glass.style.transform='rotateX(0deg)';
     phone.style.transform='rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
     I.textContent=gyro?'Tilt back to drink':'Drag down to drink';II.textContent=gyro?'📱':'🖱️';
-    S.textContent='🍻 Refilled!';
-    setTimeout(()=>{if(level>90)S.textContent='🍻 Fresh pint!';},1000);
+    S.textContent=DRINKS[currentDrink].msg;
+    resetIce();
   }
 
-  // === GYRO — with 3D phone tilt ===
+  // === GYRO ===
   function handleOrientation(e){
     if(!gyro)return;
-    let b=e.beta, g=e.gamma;
+    const b=e.beta,g=e.gamma;
     if(b===null||b===undefined)return;
     listened=true;
-
     if(cal===null)cal=b;
 
-    const delta=cal-b; // positive = tilted back (drinking)
-    const absB=Math.abs(b);
+    const delta=cal-b;
+    lastBeta=b;
+    lastGamma=g||0;
 
-    // 3D phone tilt: rotate the phone frame with gyro
-    // beta (front/back) → rotateX, gamma (left/right) → rotateZ
-    const rotX=Math.min(20,Math.max(-25,(cal-b)*0.12));
+    // 3D phone tilt
+    const rotX=Math.min(20,Math.max(-25,delta*0.12));
     const rotZ=Math.min(15,Math.max(-15,(g||0)*-0.15));
     const rotY=(g||0)*0.05;
-
-    // Apply phone 3D rotation
     phone.style.transform=`rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
-    phone.classList.add('tilt-fast');
-    // Remove fast class after transition
+    phone.classList.add('fast');
     clearTimeout(phone._tiltTimer);
-    phone._tiltTimer=setTimeout(()=>phone.classList.remove('tilt-fast'),100);
+    phone._tiltTimer=setTimeout(()=>phone.classList.remove('fast'),100);
 
-    // Glass tilt while drinking
-    if(delta>10){
-      const gt=Math.min(35,delta*0.3);
-      glass.style.transform=`rotateX(${gt}deg)`;
-    }else if(delta<-10){
-      glass.style.transform=`rotateX(${Math.max(-8,delta*0.1)}deg)`;
-    }else{
-      glass.style.transform='rotateX(0deg)';
-    }
+    // Glass tilt
+    if(delta>10)glass.style.transform=`rotateX(${Math.min(35,delta*0.3)}deg)`;
+    else if(delta<-10)glass.style.transform=`rotateX(${Math.max(-8,delta*0.1)}deg)`;
+    else glass.style.transform='rotateX(0deg)';
 
     // Drink logic
-    if(delta>20){
+    if(delta>18){
       if(!drinking){drinking=true;accum=0;}
-      const rate=(delta-20)/70;
+      const rate=(delta-18)/72;
       accum+=rate*0.5;
       if(accum>=1){drain(1);accum=0;}
       I.textContent='🥴 Glug glug!';II.textContent='🥴';
     }else{
       if(drinking){drinking=false;accum=0;}
-      I.textContent=delta>8?'Almost...':'Tilt back to drink';
+      I.textContent=delta>6?'Almost...':'Tilt back to drink';
       II.textContent='📱';
     }
   }
@@ -273,7 +519,6 @@ body{
     const y=e.type.startsWith('t')?e.touches[0].clientY:e.clientY;
     const dy=y-ds;
     glass.style.transform=`rotateX(${Math.min(40,dy*0.15)}deg)`;
-    // Slight phone tilt on drag too
     phone.style.transform=`rotateX(${Math.min(8,dy*0.04)}deg)`;
     if(dy>30){
       const rate=(dy-30)/120;
@@ -282,7 +527,8 @@ body{
       I.textContent='🥴 Glug glug!';II.textContent='🥴';
     }else{I.textContent='⬇️ Drag down';II.textContent='🖱️';}
   }
-  function ed(){dd=false;accum=0;glass.style.transform='rotateX(0deg)';phone.style.transform='rotateX(0deg) rotateY(0deg) rotateZ(0deg)';I.textContent=gyro?'Tilt back':'⬇️ Drag';II.textContent=gyro?'📱':'🖱️';}
+  function ed(){dd=false;accum=0;glass.style.transform='rotateX(0deg)';phone.style.transform='rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
+  I.textContent=gyro?'Tilt back':'⬇️ Drag';II.textContent=gyro?'📱':'🖱️';}
 
   function enableFallback(){
     G.style.display='none';
@@ -320,11 +566,17 @@ body{
     }
   }
 
+  // Ice button
+  iceBtn.addEventListener('click',()=>addIce(3));
+
   R.addEventListener('click',refill);
   document.addEventListener('keydown',e=>{if(e.key==='r'||e.key==='R')refill()});
 
   set(100);
+  setDrink('beer');
   initGyro();
+  startPhysics();
+  resetIce();
 
   document.addEventListener('click',()=>{
     if(!gyro&&typeof DeviceOrientationEvent!=='undefined'&&
