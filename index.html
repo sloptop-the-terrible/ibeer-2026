@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1,viewport-fit=cover">
+<title>iBeer 2026</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+body{
+  background:radial-gradient(ellipse at 50% 80%,#1a0e08 0%,#0d0704 70%,#000 100%);
+  font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100dvh;padding:10px;
+}
+.container{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:360px;perspective:800px}
+
+.phone{
+  width:100%;max-width:320px;aspect-ratio:9/16;
+  background:linear-gradient(145deg,#1a1a1a,#2a2a2a);
+  border-radius:36px;padding:10px;
+  position:relative;
+  box-shadow:0 0 0 2px #333,0 0 0 4px #111,0 15px 40px rgba(0,0,0,.8);
+  transform-style:preserve-3d;transition:transform .06s cubic-bezier(.05,.7,.3,1);
+  transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+}
+.phone.tilt-fast{transition:transform .02s linear}
+
+.notch{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%) translateZ(2px);
+  width:130px;height:26px;background:#111;border-radius:0 0 14px 14px;z-index:10;
+}
+.notch-dot{position:absolute;top:8px;left:50%;width:8px;height:8px;background:#1a1a3a;border-radius:50%;transform:translateX(-50%);border:1px solid #222}
+
+.screen{
+  width:100%;height:100%;border-radius:27px;overflow:hidden;
+  background:linear-gradient(180deg,#3e1f0d 0%,#2a1508 50%,#1a0e04 100%);
+  display:flex;flex-direction:column;align-items:center;position:relative;
+  transform:translateZ(1px);
+}
+
+.title-bar{width:100%;padding:32px 12px 4px;text-align:center;flex-shrink:0}
+.title-bar h1{font-size:24px;color:#ffd700;text-shadow:0 2px 6px rgba(0,0,0,.5);letter-spacing:1px;margin:0}
+.title-bar .sub{font-size:10px;color:rgba(255,215,0,.25);margin-top:1px}
+
+.glass-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;perspective:600px;transform:translateZ(3px)}
+
+.glasses-wrap{position:relative;width:150px;height:190px;margin:4px auto;transform-style:preserve-3d}
+
+.glass{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:130px;height:165px;transform-style:preserve-3d;transition:transform .1s ease;
+}
+.glass-body{
+  position:absolute;bottom:0;left:0;width:100%;height:100%;
+  background:linear-gradient(90deg,rgba(200,160,120,.12),rgba(255,255,255,.03) 30%,rgba(200,160,120,.18) 60%,rgba(255,255,255,.05));
+  border:2px solid rgba(200,160,120,.25);border-radius:0 0 10px 10px;overflow:hidden;backdrop-filter:blur(1px);
+}
+.glass-body::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
+.glass-body::after{content:'';position:absolute;top:0;left:10%;width:80%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04) 30%,transparent 70%);pointer-events:none}
+.handle{position:absolute;right:-17px;top:32px;width:18px;height:40px;border:2px solid rgba(200,160,120,.15);border-radius:0 8px 8px 0;border-left:none}
+
+.liquid-wrap{position:absolute;bottom:0;left:0;width:100%;height:100%;overflow:hidden;border-radius:0 0 8px 8px}
+.liquid{
+  position:absolute;bottom:0;left:0;width:100%;height:100%;
+  background:linear-gradient(180deg,#f5d742 0%,#d4a017 10%,#c8960e 25%,#b8860b 45%,#8B6914 65%,#6B4E0A 80%,#4a3508 100%);
+  transition:height .15s cubic-bezier(.4,0,.2,1);border-radius:0 0 8px 8px;z-index:2
+}
+.liquid::after{content:'';position:absolute;top:-3px;left:0;right:0;height:10px;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,200,.2),transparent);border-radius:50%}
+.liquid-shine{position:absolute;top:2px;left:5%;width:90%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,220,.3),transparent);border-radius:50%;z-index:3;pointer-events:none}
+
+.foam{
+  position:absolute;bottom:0;left:0;width:100%;height:100%;
+  background:linear-gradient(180deg,rgba(255,255,255,.95) 0%,rgba(255,255,240,.88) 6%,rgba(255,230,200,.5) 12%,transparent 18%);
+  z-index:3;transition:height .15s cubic-bezier(.4,0,.2,1);border-radius:0 0 8px 8px;pointer-events:none
+}
+
+.bubble-container{position:absolute;bottom:0;left:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:hidden}
+.bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.6),rgba(255,255,255,.2));animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0) scale(1);opacity:.7}100%{transform:translateY(-175px) scale(.2);opacity:0}}
+
+.glug-overlay{position:absolute;bottom:0;left:0;width:100%;height:100%;z-index:5;pointer-events:none}
+.glug-wave{position:absolute;bottom:0;left:-10%;width:120%;height:0%;background:rgba(255,200,100,.08);border-radius:40%;z-index:5}
+.glug-wave.go{height:30%;animation:glug 1s ease-out forwards}
+@keyframes glug{0%{height:0%;opacity:1}50%{height:35%;opacity:.5;border-radius:30%}100%{height:0%;opacity:0;border-radius:50%}}
+
+.status{font-size:13px;font-weight:600;color:rgba(255,255,200,.65);text-shadow:0 1px 3px rgba(0,0,0,.5);text-align:center;min-height:20px;margin-top:4px;transition:opacity .3s}
+
+.bottoms{flex-shrink:0;width:100%;padding:8px 12px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+
+.inst{font-size:11px;color:rgba(255,255,200,.3);display:flex;align-items:center;gap:4px;justify-content:center;min-height:18px}
+.inst .pulse{font-size:13px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:.4}50%{opacity:1}}
+
+.counter{font-size:11px;color:rgba(255,255,200,.2);margin-top:1px}
+
+.btn-wrap{display:flex;gap:10px;margin-top:4px}
+.btn{
+  padding:7px 18px;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,#d4a017,#b8860b);color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.3);transition:all .15s;touch-action:manipulation
+}
+.btn:active{transform:scale(.95)}
+.btn.gyro{background:linear-gradient(135deg,#4a90d9,#357abd);display:none}
+
+.sip-indicator{font-size:18px;color:rgba(255,215,0,.1);margin-top:2px;min-height:22px;letter-spacing:2px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="phone" id="phone">
+    <div class="notch"><div class="notch-dot"></div></div>
+    <div class="screen">
+      <div class="title-bar">
+        <h1>🍺 iBeer</h1>
+        <div class="sub">tilt & drink</div>
+      </div>
+      <div class="glass-area">
+        <div class="glasses-wrap">
+          <div class="glass" id="glass">
+            <div class="glass-body">
+              <div class="handle"></div>
+              <div class="liquid-wrap">
+                <div class="liquid" id="liquid" style="height:100%">
+                  <div class="liquid-shine"></div>
+                </div>
+                <div class="foam" id="foam" style="height:100%"></div>
+                <div class="bubble-container" id="bubbleCon"></div>
+              </div>
+            </div>
+          </div>
+          <div class="glug-overlay"><div class="glug-wave" id="glugWave"></div></div>
+        </div>
+        <div class="status" id="status">🍻 Cheers!</div>
+      </div>
+      <div class="bottoms">
+        <div class="inst"><span class="pulse" id="instIcon">📱</span><span id="instText">Tap to enable</span></div>
+        <div class="counter" id="counter">0 beers</div>
+        <div class="btn-wrap">
+          <button class="btn gyro" id="gyroBtn">Enable Gyroscope</button>
+          <button class="btn" id="resetBtn">🔄 Refill</button>
+        </div>
+        <div class="sip-indicator" id="sipDots">··········</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const L=document.getElementById('liquid');
+  const F=document.getElementById('foam');
+  const S=document.getElementById('status');
+  const C=document.getElementById('counter');
+  const I=document.getElementById('instText');
+  const II=document.getElementById('instIcon');
+  const R=document.getElementById('resetBtn');
+  const G=document.getElementById('gyroBtn');
+  const glass=document.getElementById('glass');
+  const phone=document.getElementById('phone');
+  const BC=document.getElementById('bubbleCon');
+  const SD=document.getElementById('sipDots');
+  const GW=document.getElementById('glugWave');
+
+  let level=100, drunk=0;
+  let gyro=false, listened=false;
+  let cal=null, accum=0, drinking=false;
+
+  // Bubbles
+  (function(){
+    BC.innerHTML='';
+    for(let i=0;i<18;i++){
+      const b=document.createElement('div');
+      b.className='bubble';
+      const s=2+Math.random()*4;
+      b.style.cssText=`left:${8+Math.random()*84}%;bottom:${Math.random()*20}%;width:${s}px;height:${s}px;animation-duration:${1.5+Math.random()*2.5}s;animation-delay:${Math.random()*3}s`;
+      BC.appendChild(b);
+    }
+  })();
+
+  function set(l){
+    level=Math.max(0,Math.min(100,l));
+    L.style.height=level+'%';
+    F.style.height=Math.min(100,level+2)+'%';
+    const dots=Math.floor(level/10);
+    SD.textContent='🍺'.repeat(dots)+(dots<10?'·'.repeat(10-dots):'');
+    if(level>=95)S.textContent='🍻 Fresh pint!';
+    else if(level>70)S.textContent='😌 Gettin there';
+    else if(level>40)S.textContent='😋 Halfway!';
+    else if(level>10)S.textContent='🤏 Almost gone';
+    else if(level>0)S.textContent='😵 Last drops!';
+    else{S.textContent='🍺 EMPTY!';drunk++;C.textContent=drunk+(drunk===1?' beer':' beers');}
+  }
+
+  function drain(amt){
+    if(level<=0)return;
+    const prev=level;
+    set(level-amt);
+    GW.className='glug-wave go';
+    setTimeout(()=>GW.className='glug-wave',800);
+  }
+
+  function refill(){
+    set(100);accum=0;drinking=false;
+    glass.style.transform='rotateX(0deg)';
+    phone.style.transform='rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
+    I.textContent=gyro?'Tilt back to drink':'Drag down to drink';II.textContent=gyro?'📱':'🖱️';
+    S.textContent='🍻 Refilled!';
+    setTimeout(()=>{if(level>90)S.textContent='🍻 Fresh pint!';},1000);
+  }
+
+  // === GYRO — with 3D phone tilt ===
+  function handleOrientation(e){
+    if(!gyro)return;
+    let b=e.beta, g=e.gamma;
+    if(b===null||b===undefined)return;
+    listened=true;
+
+    if(cal===null)cal=b;
+
+    const delta=cal-b; // positive = tilted back (drinking)
+    const absB=Math.abs(b);
+
+    // 3D phone tilt: rotate the phone frame with gyro
+    // beta (front/back) → rotateX, gamma (left/right) → rotateZ
+    const rotX=Math.min(20,Math.max(-25,(cal-b)*0.12));
+    const rotZ=Math.min(15,Math.max(-15,(g||0)*-0.15));
+    const rotY=(g||0)*0.05;
+
+    // Apply phone 3D rotation
+    phone.style.transform=`rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+    phone.classList.add('tilt-fast');
+    // Remove fast class after transition
+    clearTimeout(phone._tiltTimer);
+    phone._tiltTimer=setTimeout(()=>phone.classList.remove('tilt-fast'),100);
+
+    // Glass tilt while drinking
+    if(delta>10){
+      const gt=Math.min(35,delta*0.3);
+      glass.style.transform=`rotateX(${gt}deg)`;
+    }else if(delta<-10){
+      glass.style.transform=`rotateX(${Math.max(-8,delta*0.1)}deg)`;
+    }else{
+      glass.style.transform='rotateX(0deg)';
+    }
+
+    // Drink logic
+    if(delta>20){
+      if(!drinking){drinking=true;accum=0;}
+      const rate=(delta-20)/70;
+      accum+=rate*0.5;
+      if(accum>=1){drain(1);accum=0;}
+      I.textContent='🥴 Glug glug!';II.textContent='🥴';
+    }else{
+      if(drinking){drinking=false;accum=0;}
+      I.textContent=delta>8?'Almost...':'Tilt back to drink';
+      II.textContent='📱';
+    }
+  }
+
+  // === FALLBACK ===
+  const GA=document.querySelector('.glass-area');
+  let ds=0,dd=false;
+
+  function sd(e){
+    dd=true;
+    ds=e.type.startsWith('t')?e.touches[0].clientY:e.clientY;
+    accum=0;
+  }
+  function mv(e){
+    if(!dd)return;
+    const y=e.type.startsWith('t')?e.touches[0].clientY:e.clientY;
+    const dy=y-ds;
+    glass.style.transform=`rotateX(${Math.min(40,dy*0.15)}deg)`;
+    // Slight phone tilt on drag too
+    phone.style.transform=`rotateX(${Math.min(8,dy*0.04)}deg)`;
+    if(dy>30){
+      const rate=(dy-30)/120;
+      accum+=rate*0.6;
+      if(accum>=1){drain(1);accum=0;}
+      I.textContent='🥴 Glug glug!';II.textContent='🥴';
+    }else{I.textContent='⬇️ Drag down';II.textContent='🖱️';}
+  }
+  function ed(){dd=false;accum=0;glass.style.transform='rotateX(0deg)';phone.style.transform='rotateX(0deg) rotateY(0deg) rotateZ(0deg)';I.textContent=gyro?'Tilt back':'⬇️ Drag';II.textContent=gyro?'📱':'🖱️';}
+
+  function enableFallback(){
+    G.style.display='none';
+    if(gyro)window.removeEventListener('deviceorientation',handleOrientation);
+    gyro=false;
+    I.textContent='⬇️ Drag down';II.textContent='🖱️';
+    GA.addEventListener('mousedown',sd);
+    document.addEventListener('mousemove',mv);
+    document.addEventListener('mouseup',ed);
+    GA.addEventListener('touchstart',function(e){sd(e);},{passive:true});
+    document.addEventListener('touchmove',function(e){mv(e);},{passive:true});
+    document.addEventListener('touchend',ed);
+  }
+
+  function initGyro(){
+    if(typeof DeviceOrientationEvent==='undefined'){enableFallback();return;}
+    if(typeof DeviceOrientationEvent.requestPermission==='function'){
+      G.style.display='inline-block';G.textContent='🔒 Enable Gyroscope';
+      G.addEventListener('click',async()=>{
+        try{
+          const s=await DeviceOrientationEvent.requestPermission();
+          if(s==='granted'){
+            window.addEventListener('deviceorientation',handleOrientation);
+            gyro=true;G.style.display='none';cal=null;
+            I.textContent='Tilt back to drink';II.textContent='📱';
+            setTimeout(()=>{if(!listened)enableFallback();},3000);
+          }else{enableFallback();}
+        }catch(e){enableFallback();}
+      });
+    }else{
+      window.addEventListener('deviceorientation',handleOrientation);
+      gyro=true;G.style.display='none';cal=null;
+      I.textContent='Tilt back to drink';II.textContent='📱';
+      setTimeout(()=>{if(!listened)enableFallback();},3000);
+    }
+  }
+
+  R.addEventListener('click',refill);
+  document.addEventListener('keydown',e=>{if(e.key==='r'||e.key==='R')refill()});
+
+  set(100);
+  initGyro();
+
+  document.addEventListener('click',()=>{
+    if(!gyro&&typeof DeviceOrientationEvent!=='undefined'&&
+       typeof DeviceOrientationEvent.requestPermission!=='function'){
+      window.addEventListener('deviceorientation',handleOrientation);
+      gyro=true;cal=null;
+      setTimeout(()=>{if(!listened)enableFallback();else{I.textContent='Tilt back to drink';II.textContent='📱';}},3000);
+    }
+  },{once:true});
+
+})();
+</script>
+</body>
+</html>
